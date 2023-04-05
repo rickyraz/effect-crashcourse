@@ -196,6 +196,11 @@ function flakyEffectFromRandom(random: number) {
 }
 
 export const flakyEffectNative = pipe(
+  /*
+   The random function is an effect constructor in the ZIO library. It retrieves the Random service from the environment, which can be used to generate pseudo-random numbers in a purely functional way. The Random service is a capability provided by the ZIO runtime, which allows the effectful computation to generate random values in a way that is deterministic and testable.
+   
+   The type signature of the random function is (_: void) => Effect.Effect<never, never, Random>. This means that the function takes a value of type void as an argument (which is ignored), and returns an effectful computation that may produce a value of type Random. The Effect type constructor represents a pure computation that may produce effects, such as reading from the environment or generating random values. The never type parameter indicates that the computation cannot fail, and the second never type parameter indicates that the computation may produce no error value. The Random type parameter indicates the type of the value that may be produced by the computation.
+   */
   Effect.random(), // Effect.Effect<never, never, Random>
 
   /*
