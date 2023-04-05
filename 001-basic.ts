@@ -17,6 +17,8 @@ import * as Context from "@effect/data/Context";
  *
  * The computation has requirements (R), can fail (E) or succeed (A).
  *
+ * Either's are used for success/failure paths, they are called biased Either's.
+ *
  * You can loosely think of Effect<R, E, A> as the following type:
  *
  *   (r: R) => Promise<Either<E, A>> | Either<E, A>
@@ -38,8 +40,19 @@ import * as Context from "@effect/data/Context";
 /*
  * Notes while going through the rest of this crash course:
  * 1. Effect has excellent type inference. You rarely need to specify types manually.
+ *
+ * Effect is a powerful library for building and composing async and concurrent programs in TypeScript.
+ * One of its key strengths is its ability to infer types,
+ * which means you don't have to manually specify types for most use cases.
+ * This can make it easier to write and refactor code
+ *
  * 2. There are explicit type annotations in several parts of this crash course
  * to make it easier for you to follow.
+ *
+ * While Effect has excellent type inference, the author has added explicit
+ * 'type annotations' in several parts of the crash course to make it easier for readers to follow along.
+ * This is a helpful technique for beginners who may not be familiar
+ * with all of the types and concepts used in functional programming with Effect.
  */
 
 /* Basic constructors
@@ -72,6 +85,8 @@ export const fail = Effect.fail(3);
 export const sync = Effect.sync(() => new Date());
 //           ^ Effect.Effect<never, never, Date>;
 
+// ---
+
 /*
  * NOTE: if we used Effect.succeed(new Date()), the date stored in the success
  * channel would be the one when the javascript virtual machine initially
@@ -100,6 +115,8 @@ export const suspend =
       : Effect.fail("<.5" as const),
   );
 
+// ------------------
+
 /*
  * Some basic control flow
  * =======================
@@ -110,6 +127,8 @@ export const suspend =
 function eitherFromRandom(random: number): Either.Either<"fail", number> {
   return random > 0.5 ? Either.right(random) : Either.left("fail" as const);
 }
+
+//--- These functions demonstrate how to handle computations that can fail using the Effect monad in fp-ts.
 
 // This will fail sometimes
 export const flakyEffect = pipe(
@@ -125,6 +144,7 @@ export const flakyEffectAbsolved = pipe(
   Effect.map(eitherFromRandom), // Effect.Effect<never, never, Either<'fail', number>>
   Effect.absolve, // Effect.Effect<never, 'fail', number>
 );
+
 /* NOTE:
  * Effect.flatMap(Effect.fromEither) is so common that there's a built in function
  * that's equivalent to it: Effect.absolve.
@@ -154,6 +174,19 @@ Effect.runPromise(flakyEffectAbsolved); // executes flakyEffectAbsolved
 
 // Can you figure out what cond does by looking at this example?
 // (Hint: You can also hover over cond to see some info)
+
+/**
+ * This is a function signature that takes three arguments:
+ * 
+ * 'predicate': a lazy function that returns a boolean value. This function is evaluated only when the Effect is run.
+ * 'result': a lazy function that returns a number value. This function is evaluated and returned as the success value of the Effect if the predicate function returns true.
+ * 'error': a lazy function that returns a string value. This function is evaluated and returned as the error value of the Effect if the predicate function returns false.
+ * 
+ * The function returns an Effect that may fail with the error value of type "fail" or succeed with a number value, depending on the result of evaluating the predicate function.
+ * 
+ * Note that this function only handles synchronous (non-effectful) conditions. For effectful conditions, you can use the ifEffect function.
+ */
+
 function flakyEffectFromRandom(random: number) {
   return Effect.cond(
     () => random > 0.5,
@@ -164,9 +197,20 @@ function flakyEffectFromRandom(random: number) {
 
 export const flakyEffectNative = pipe(
   Effect.random(), // Effect.Effect<never, never, Random>
+
+  /*
+   This type signature describes a function called flatMap that takes a function f that maps a value of type number to an Effect value that can fail with an error of type "fail" or succeed with a value of type number.
+   
+   The flatMap function then returns a new function that takes an Effect value self with a generic environment type R and a generic error type E that has a value of type number in its success channel. The return type of this function is an Effect value that has "fail" added to its error type E because flatMap allows the effect to fail with "fail" in addition to any errors self could have failed with.
+   
+   The flatMap function is commonly used in functional programming to chain multiple operations that return Effect values together in a sequence, passing the success value of the previous effect to the next effect's function argument, and returning a new Effect value that represents the combined sequence of effects. 
+   */
+
   Effect.flatMap(random => random.next()), // Effect.Effect<never, never, number>
   Effect.flatMap(flakyEffectFromRandom), // Effect.Effect<never, 'fail', number>
 );
+
+// BINGUNGGGGGGG -----------------------------------------------------------------------------------------
 
 /* Context
  * =======
