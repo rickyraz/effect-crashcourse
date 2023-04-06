@@ -142,6 +142,22 @@ export const flakyEffectAbsolved = pipe(
   Effect.random(), // Effect.Effect<never, never, Random>
   Effect.flatMap(random => random.next()), // Effect.Effect<never, never, number>
   Effect.map(eitherFromRandom), // Effect.Effect<never, never, Either<'fail', number>>
+
+  /*
+  The absolve function is used to convert an Effect value that produces an Either type of result into
+  
+  an Effect that produces a 'successful' result,if the Either value is a 'right' value.
+  if the Either value is a left value, then the Effect will produce an error with the left value of the Either type.
+
+  For example, suppose we have an Effect that produces an Either<string, number>:
+  const effect1: Effect<unknown, string, Either<string, number>> = ...;
+
+  We can use absolve to transform this Effect into an Effect that produces a number in the success case, or an error with a string in the failure case:
+  const effect2: Effect<unknown, string, number> = absolve(effect1);
+
+  In this way, we can simplify the error handling of our effects by -- handling the Either type of result -- using the absolve function, which removes the error case from the result and produces an error if necessary.
+  */
+
   Effect.absolve, // Effect.Effect<never, 'fail', number>
 );
 
@@ -176,11 +192,11 @@ Effect.runPromise(flakyEffectAbsolved); // executes flakyEffectAbsolved
 // (Hint: You can also hover over cond to see some info)
 
 /**
- * This is a function signature that takes three arguments:
+ * Effect.cond() is a function signature that takes three arguments:
  * 
- * 'predicate': a lazy function that returns a boolean value. This function is evaluated only when the Effect is run.
- * 'result': a lazy function that returns a number value. This function is evaluated and returned as the success value of the Effect if the predicate function returns true.
- * 'error': a lazy function that returns a string value. This function is evaluated and returned as the error value of the Effect if the predicate function returns false.
+ * 'predicate': a lazy function that returns a 'boolean' value. This function is evaluated only when the Effect is run.
+ * 'result': a lazy function that returns a 'number' value. This function is evaluated and returned as the success value of the Effect if the predicate function returns true.
+ * 'error': a lazy function that returns a 'string' value. This function is evaluated and returned as the error value of the Effect if the predicate function returns false.
  * 
  * The function returns an Effect that may fail with the error value of type "fail" or succeed with a number value, depending on the result of evaluating the predicate function.
  * 
@@ -215,7 +231,7 @@ export const flakyEffectNative = pipe(
   Effect.flatMap(flakyEffectFromRandom), // Effect.Effect<never, 'fail', number>
 );
 
-// BINGUNGGGGGGG -----------------------------------------------------------------------------------------
+// --------------------- BINGUNG ---------------------
 
 /* Context
  * =======
